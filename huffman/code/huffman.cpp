@@ -19,31 +19,77 @@ struct Node {
 class HuffmanTree {
 
 private:
-
     Node* root;
 
     // We will use vector here so you don't have to reimplement dynamic array again.
     std::vector<Node*> heap;
 
     void bubble_up(int index) {
-        // TODO
-        // Compare the node at 'index' with its parent.
-        // If it's smaller, swap them and continue bubbling up.
+        while (index > 0) {
+            int parent = (index - 1) / 2;
+            if (heap[index]->freq < heap[parent]->freq) 
+            {
+                Node* temp = heap[index];
+                heap[index] = heap[parent];
+                heap[parent] = temp;
+                index = parent;
+            } 
+            else 
+            {
+                break;
+            }
+        }
     }
 
     void bubble_down(int index) {
-        // TODO
-        // Compare the node at 'index' with its children.
-        // If it's larger than the smaller child, swap them
-        // and continue bubbling down.
+        int size = heap.size();
+        while (true) {
+            int small = index;
+            int left = 2 * index + 1;
+            int right = 2 * index + 2;
+
+            if (left < size && heap[left]->freq < heap[small]->freq) 
+            {
+                small = left;
+            }
+            if (right < size && heap[right]->freq < heap[small]->freq) 
+            {
+                small = right;
+            }
+
+            if (small != index) 
+            {
+                Node* temp = heap[index];
+                heap[index] = heap[small];
+                heap[small] = temp;
+                index = small;
+            } 
+            else 
+            {
+                break;
+            }
+        }
     }
 
-    void heap_insert(Node* node) {
-        // TODO
+    void heap_insert(Node* node) 
+    {
+        heap.push_back(node);
+        bubble_up(heap.size() - 1);
     }
 
     Node* pop() {
-        // TODO
+        if (heap.empty()) 
+        {
+            return nullptr;
+        }
+        Node* min = heap[0];
+        heap[0] = heap[heap.size() - 1];
+        heap.pop_back();
+        if (!heap.empty()) 
+        {
+            bubble_down(0);
+        }
+        return min;
     }
 
 
@@ -51,8 +97,10 @@ public:
     HuffmanTree() : root(nullptr) {}
 
     // Inserts a new frequency into the heap. Cannot be called after the tree has been built.
-    void insert_freq(char c, int freq) {
-      //TODO
+    void insert_freq(char c, int freq) 
+    {
+        Node* node = new Node(c, freq);
+        heap_insert(node);
     }
 
     void print_heap() {
@@ -79,12 +127,46 @@ public:
 
     // Called once, and builds the code.
     void build_tree() {
-      // TODO
+        while (heap.size() > 1) 
+        {
+            Node* left = pop();
+            Node* right = pop();
+            
+            Node* parent = new Node(left->freq + right->freq);
+            parent->left = left;
+            parent->right = right;
+            
+            heap_insert(parent);
+        }
+        
+        if (!heap.empty()) 
+        {
+            root = heap[0];
+        }
     }
 
     // Called after the tree has been built, to decode a series of bits.
     void decode(bool* bits, int size) {
-      // TODO
+        Node* current = root;
+        for (int i = 0; i < size; i++) 
+        {
+            if (bits[i]) 
+            {
+                current = current->right;
+            } 
+            else 
+            {
+                current = current->left;
+            }
+            
+            if (current->data != '\0') 
+            {
+                std::cout << current->data;
+                current = root;
+            }
+        }
+
+        std::cout << std::endl;
     }
 
     void decode_helper(const std::string& bitstring) {
